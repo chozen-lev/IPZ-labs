@@ -1,18 +1,14 @@
 #include "lexicalanalyzer.h"
 
-#include <iostream>
-
-LexicalAnalyzer::LexicalAnalyzer(std::map<std::string, int> *keyword, std::map<std::string, int> *identifier, std::map<std::string, int> *constant)
-    : keywordsTable(keyword),
-      identifiersTable(identifier),
-      constantsTable(constant)
+LexicalAnalyzer::LexicalAnalyzer()
 {
 
 }
 
-std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream)
+std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream, std::map<std::string, int> *keyword, std::map<std::string, int> *identifier, \
+                                             std::map<std::string, int> *constant, std::vector<std::string> *error)
 {
-    std::vector<Token*> lexOutput;
+    std::vector<Token*> tokens;
     int x = 1, y = 1;
 
     Symbol symbol;
@@ -34,7 +30,6 @@ std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream)
                     x = 1;
                     y++;
                 } else { x++; }
-
                 symbol = gets(stream);
             }
             SuppressOutput = true;
@@ -45,10 +40,10 @@ std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream)
                 buff += symbol.value;
                 symbol = gets(stream);
             }
-            if (search(constantsTable, buff) >= 0) {
-                lexCode = constantsTable->at(buff);
+            if (search(constant, buff) >= 0) {
+                lexCode = constant->at(buff);
             } else {
-                lexCode = append(constantsTable, constantsBegin, buff);
+                lexCode = append(constant, constantsBegin, buff);
             }
             break;
         }
@@ -57,12 +52,12 @@ std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream)
                 buff += symbol.value;
                 symbol = gets(stream);
             }
-            if (search(keywordsTable, buff) >= 0) {
-                lexCode = keywordsTable->at(buff);
-            } else if (search(identifiersTable, buff) >= 0) {
-                lexCode = identifiersTable->at(buff);
+            if (search(keyword, buff) >= 0) {
+                lexCode = keyword->at(buff);
+            } else if (search(identifier, buff) >= 0) {
+                lexCode = identifier->at(buff);
             } else {
-                lexCode = append(keywordsTable, keywordsBegin, buff);
+                lexCode = append(identifier, identifiersBegin, buff);
             }
             break;
         }
@@ -70,52 +65,52 @@ std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream)
             if (stream.eof()) {
                 lexCode = symbol.value;
                 buff += symbol.value;
-            } else {
-                symbol = gets(stream);
-                if (symbol.value == '*') {
-                    int x1 = x + 1, y1 = y;
+                break;
+            }
 
+            symbol = gets(stream);
+            if (symbol.value == '*') {
+                int x1 = ++x, y1 = y;
+
+                if (stream.eof()) {
+                    SuppressOutput = true;
+                    error->push_back("Lexer: Error (line " + std::to_string(y1) + ", column " + std::to_string(x1) \
+                                     + "): *) expected but end of file found");
+                    break;
+                }
+
+                x++;
+                symbol = gets(stream);
+                do {
+                    while (!stream.eof() && (symbol.value != '*' || symbol.attr == Whitespace)) {
+                        if (symbol.value == '\n') {
+                            x = 1;
+                            y++;
+                        } else { x++; }
+                        symbol = gets(stream);
+                    }
                     if (stream.eof()) {
-                        std::cout << "Lexer: Error (line " << y << ", column " << x << "): *) expected but end of file found" << std::endl;
                         SuppressOutput = true;
+                        error->push_back("Lexer: Error (line " + std::to_string(y1) + ", column " + std::to_string(x1) \
+                                         + "): *) expected but end of file found");
                         break;
                     }
 
+                    x++;
                     symbol = gets(stream);
-                    x1++;
+                } while (symbol.value != ')');
 
-                    do {
-                        while (!stream.eof() && (symbol.value != '*' || symbol.attr == Whitespace)) {
-                            if (symbol.value == '\n') {
-                                x1 = 1;
-                                y1++;
-                            } else { x1++; }
-
-                            symbol = gets(stream);
-                        }
-                        if (stream.eof()) {
-                            std::cout << "Lexer: Error (line " << y << ", column " << x << "): *) expected but end of file found" << std::endl;
-                            SuppressOutput = true;
-                            break;
-                        }
-
-                        x1++;
-                        symbol = gets(stream);
-                    } while (symbol.value != ')');
-
-                    if (symbol.value == ')') {
-                        x = x1 + 1;
-                        y = y1;
-                        SuppressOutput = true;
-                    }
-                } else {
-                    lexOutput.push_back(new Token({ "(", '(', x++, y }));
-                    buff += symbol.value;
-                    lexCode = symbol.value;
+                if (symbol.value == ')') {
+                    x++;
+                    SuppressOutput = true;
                 }
-                if (!stream.eof()) {
-                    symbol = gets(stream);
-                }
+            } else {
+                tokens.push_back(new Token({ "(", '(', x++, y }));
+                buff += symbol.value;
+                lexCode = symbol.value;
+            }
+            if (!stream.eof()) {
+                symbol = gets(stream);
             }
             break;
         }
@@ -131,19 +126,19 @@ std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream)
         }
         }
         if (!SuppressOutput) {
-            lexOutput.push_back(new Token({ buff, lexCode, x, y }));
+            tokens.push_back(new Token({ buff, lexCode, x, y }));
             x += buff.size();
         }
     }
 
-    return lexOutput;
+    return tokens;
 }
 
 LexicalAnalyzer::Symbol LexicalAnalyzer::gets(std::ifstream &stream)
 {
     Symbol symbol;
     stream.get(symbol.value);
-    symbol.attr = (Attributes)attributes[(int)symbol.value];
+    symbol.attr = (Attributes)m_Attributes[(int)symbol.value];
 
     return symbol;
 }

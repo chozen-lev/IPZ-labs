@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
         path_source = *(argv + 1);
     }
 
-    path_source = "test2";
+    path_source = "test1.sig";
 
     while (path_source.empty())
     {
@@ -46,17 +46,19 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    std::vector<std::string> errorList;
     std::map<std::string,int> keywordsTable;
     std::map<std::string,int> identifiersTable;
     std::map<std::string,int> constantsTable;
     initializeTables(keywordsTable, identifiersTable, constantsTable);
 
-    LexicalAnalyzer LexAnalyzer(&keywordsTable, &identifiersTable, &constantsTable);
-    std::vector<Token*> lexOutput = LexAnalyzer.analyze(FileSource);
+    LexicalAnalyzer LexAnalyzer;
+    std::vector<Token*> tokens = LexAnalyzer.analyze(FileSource, &keywordsTable, &identifiersTable, &constantsTable, &errorList);
     FileSource.close();
 
-    for (unsigned i = 0; i < lexOutput.size(); ++i) {
-        std::cout << lexOutput[i]->y() << "\t" << lexOutput[i]->x() << "\t" << lexOutput[i]->type() << "\t" << lexOutput[i]->name() << std::endl;
+    for (unsigned i = 0; i < tokens.size(); ++i) {
+        std::cout << tokens[i]->y() << "\t" << tokens[i]->x() << "\t" \
+                  << tokens[i]->type() << "\t" << tokens[i]->name() << std::endl;
     }
 
     std::cout << std::endl;
