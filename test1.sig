@@ -4,4 +4,6 @@ asdasdasd*), 10;
 
 BEGIN (*;.:*)
 
+* asdasd
+
 END.

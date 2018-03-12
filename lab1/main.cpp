@@ -6,9 +6,12 @@
 #include "token.h"
 #include "lexicalanalyzer.h"
 
-void initializeTables(std::map<std::string,int> &keyword, std::map<std::string,int>, std::map<std::string,int>)
+void initializeTables(std::map<std::string,int> &keyword, std::map<std::string,int> &identifier, std::map<std::string,int> &constant)
 {
     keyword.clear();
+    identifier.clear();
+    constant.clear();
+
     keyword["PROGRAM"] = 301;
     keyword["PROCEDURE"] = 302;
     keyword["BEGIN"] = 303;
@@ -56,12 +59,19 @@ int main(int argc, char* argv[])
     std::vector<Token*> tokens = LexAnalyzer.analyze(FileSource, &keywordsTable, &identifiersTable, &constantsTable, &errorList);
     FileSource.close();
 
+    for (unsigned i = 0; i < errorList.size(); ++i) {
+        std::cout << errorList[i] << std::endl;
+    }
     for (unsigned i = 0; i < tokens.size(); ++i) {
         std::cout << tokens[i]->y() << "\t" << tokens[i]->x() << "\t" \
-                  << tokens[i]->type() << "\t" << tokens[i]->name() << std::endl;
+                  << tokens[i]->type() << "\t\t" << tokens[i]->name() << std::endl;
     }
 
     std::cout << std::endl;
+
+    for (unsigned i = 0; i < tokens.size(); ++i) {
+        delete tokens[i];
+    }
 
     return 0;
 }

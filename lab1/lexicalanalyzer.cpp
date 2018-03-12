@@ -120,8 +120,11 @@ std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream, std::map<std
             symbol = gets(stream);
             break;
         }
-        case Invalid: {
+        default: {
             symbol = gets(stream);
+            SuppressOutput = true;
+            error->push_back("Lexer: Error (line " + std::to_string(y) + ", column " + std::to_string(x) \
+                             + "): invalid character");
             break;
         }
         }
@@ -136,9 +139,9 @@ std::vector<Token*> LexicalAnalyzer::analyze(std::ifstream &stream, std::map<std
 
 LexicalAnalyzer::Symbol LexicalAnalyzer::gets(std::ifstream &stream)
 {
-    Symbol symbol;
+    Symbol symbol = { (char)0, Invalid };
     stream.get(symbol.value);
-    symbol.attr = (Attributes)m_Attributes[(int)symbol.value];
+    symbol.attr = (Attributes)(m_Attributes[(uint8_t)symbol.value]);
 
     return symbol;
 }
