@@ -38,6 +38,9 @@ Thumbs.db
 # qtcreator generated files
 *.pro.user*
 
+# cmake generated files
+CMakeLists.txt.user
+
 # xemacs temporary files
 *.flc
 
