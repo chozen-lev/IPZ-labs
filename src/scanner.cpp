@@ -33,7 +33,7 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
                 } else { x++; }
                 symbol.gets(stream);
             }
-            suppressOutput = false;
+            suppressOutput = true;
             break;
         case Constant:
             while (!stream.eof() && symbol.attr == Constant) {

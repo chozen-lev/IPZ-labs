@@ -48,9 +48,9 @@ int main(int argc, char* argv[])
     }
 
     std::vector<std::string> errorList;
-    std::map<std::string,int> keywordsTable;
-    std::map<std::string,int> identifiersTable;
-    std::map<std::string,int> constantsTable;
+    std::map<std::string, int> keywordsTable;
+    std::map<std::string, int> identifiersTable;
+    std::map<std::string, int> constantsTable;
     initializeTables(keywordsTable, identifiersTable, constantsTable);
 
     Scanner scanner;
