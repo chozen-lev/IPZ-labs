@@ -5,10 +5,10 @@ Scanner::Scanner()
 }
 
 std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
-                                                             std::map<std::string, int> &keywords,
-                                                             std::map<std::string, int> &identifiers,
-                                                             std::map<std::string, int> &constans,
-                                                             std::vector<std::string> &errors)
+                                                     std::map<std::string, int> &keywords,
+                                                     std::map<std::string, int> &identifiers,
+                                                     std::map<std::string, int> &constans,
+                                                     std::vector<std::string> &errors)
 {
     std::vector<std::shared_ptr<Token>> tokens;
 
@@ -121,7 +121,10 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
             }
             break;
         default:
-            symbol.gets(stream);
+            while (!stream.eof() && symbol.attr == Invalid) {
+                buff += symbol.value;
+                symbol.gets(stream);
+            }
             suppressOutput = true;
             errors.push_back("Lexer: Error (line " + std::to_string(y)
                              + ", column " + std::to_string(x)
@@ -130,8 +133,8 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
         }
         if (!suppressOutput) {
             tokens.push_back(std::make_shared<Token>(Token { buff, lexCode, x, y }));
-            x += buff.size();
         }
+        x += buff.size();
     }
 
     return tokens;
@@ -157,5 +160,10 @@ int Scanner::append(std::map<std::string, int> &table, TablesRange rangeBegin, s
 void Scanner::Symbol::gets(std::ifstream &stream)
 {
     stream.get(value);
-    attr = asciiAttr[static_cast<int>(value)];
+    int code = static_cast<int>(value);
+    if (code >= 0 && code < ASCII_SIZE) {
+        attr = asciiAttr[static_cast<int>(value)];
+    } else {
+        attr = Invalid;
+    }
 }
