@@ -1,5 +1,6 @@
-#ifndef TOKEN_H
-#define TOKEN_H
+#pragma once
+
+#include <string>
 
 struct Token
 {
@@ -14,4 +15,3 @@ public:
     int x() { return m_tokenPosition; }
     int y() { return m_linePosition; }
 };
-#endif // TOKEN_H
