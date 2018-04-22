@@ -2,6 +2,7 @@
 #include <boost/program_options.hpp>
 
 #include "scanner.h"
+#include "parser.h"
 #include "listing.h"
 
 #define VERSION "0.3.1"
@@ -32,7 +33,7 @@ int main(int argc, char* argv[])
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()
-        ("version,v", "Program version ")
+        ("version,v", "Program version")
         ("file,f", po::value<std::string>(&path_source), "Source file to be compiled")
         ("output,o", po::value<std::string>(), "Name of output file")
         ("lexer,l", po::bool_switch()->default_value(false), "Wheater dump lexer result or not.")
@@ -43,7 +44,7 @@ int main(int argc, char* argv[])
     po::notify(vm);
 
     if (vm.count("version")) {
-        std::cerr << desc << VERSION << std::endl << std::endl;
+        std::cerr << "Program version " << VERSION << std::endl << std::endl;
         std::cerr << "GitHub repository: " << REPOSITORY << std::endl;
         return 1;
     }
@@ -55,7 +56,7 @@ int main(int argc, char* argv[])
     std::ifstream fileStream(path_source);
     if (!fileStream.is_open()) {
         std::cerr << "Unable to open input file: " + path_source << std::endl;
-        return 0;
+        return 1;
     }
 
     std::streambuf *buff = std::cout.rdbuf();
@@ -73,11 +74,17 @@ int main(int argc, char* argv[])
     initializeTables(keywordsTable, identifiersTable, constantsTable);
 
     Scanner scanner;
+    Parser parser;
     Listing listing;
 
+    // Lexical analyzer
     auto tokens = scanner.analyze(fileStream, keywordsTable, identifiersTable, constantsTable, errorList);
     fileStream.close();
 
+    // Syntax analyzer
+    auto syntaxTree = parser.analyze(tokens, keywordsTable, identifiersTable, constantsTable, errorList);
+
+    // Listing output
     outputStream << "SIGNAL translator" << std::endl;
     listing.printErrors(errorList, outputStream);
     if (vm["lexer"].as<bool>()) {

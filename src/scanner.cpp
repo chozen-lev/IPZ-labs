@@ -112,7 +112,7 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
                     suppressOutput = true;
                 }
             } else {
-                tokens.push_back(std::make_shared<Token>(Token { "(", '(', x++, y }));
+                tokens.push_back(std::make_shared<Token>(Token { "(", '(', { x++, y } }));
                 buff += symbol.value;
                 lexCode = symbol.value;
             }
@@ -132,7 +132,7 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
             break;
         }
         if (!suppressOutput) {
-            tokens.push_back(std::make_shared<Token>(Token { buff, lexCode, x, y }));
+            tokens.push_back(std::make_shared<Token>(Token { buff, lexCode, { x, y } }));
         }
         x += buff.size();
     }

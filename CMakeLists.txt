@@ -10,6 +10,7 @@ file(GLOB SOURCES
     "src/scanner.cpp",
     "src/parser.cpp",
     "src/listing.cpp",
+    "src/syntaxtree.cpp",
     "src/main.cpp"
 )
 

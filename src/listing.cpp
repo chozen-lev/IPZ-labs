@@ -16,6 +16,6 @@ void Listing::printTokens(std::vector<std::shared_ptr<Token>> tokens, std::ostre
 {
     for (auto token: tokens) {
         stream << token->y() << "\t" << token->x() << "\t"
-               << token->type() << "\t\t" << token->name() << std::endl;
+               << token->code() << "\t\t" << token->name() << std::endl;
     }
 }
