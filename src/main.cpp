@@ -1,7 +1,13 @@
 #include <iostream>
+#include <boost/program_options.hpp>
 
 #include "scanner.h"
 #include "listing.h"
+
+#define VERSION "0.3.1"
+#define REPOSITORY "https://github.com/chozen-lev/SIGNAL-Translator"
+
+namespace po = boost::program_options;
 
 void initializeTables(std::map<std::string, int> &keywords,
                       std::map<std::string, int> &identifiers,
@@ -23,29 +29,42 @@ int main(int argc, char* argv[])
 {
     std::string path_source;
 
-    if (argc >= 2) {
-        path_source = *(argv + 1);
+    // Declare the supported options.
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("version,v", "Program version ")
+        ("file,f", po::value<std::string>(&path_source), "Source file to be compiled")
+        ("output,o", po::value<std::string>(), "Name of output file")
+        ("lexer,l", po::bool_switch()->default_value(false), "Wheater dump lexer result or not.")
+        ("help,h", "Produce help message");
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if (vm.count("version")) {
+        std::cerr << desc << VERSION << std::endl << std::endl;
+        std::cerr << "GitHub repository: " << REPOSITORY << std::endl;
+        return 1;
+    }
+    if (vm.count("help") || vm.count("file") == 0) {
+        std::cerr << desc << std::endl;
+        return 1;
     }
 
-    while (path_source.empty())
-    {
-        std::cout << "Source filename [.sig]: ";
-        std::getline(std::cin, path_source);
-
-        if (path_source.empty()) {
-            std::cout << "Line invalid, start again" << std::endl << std::endl;
-        }
-    }
-
-    if (path_source.rfind(".sig") == std::string::npos) {
-        path_source += ".sig";
-    }
-
-    std::ifstream fileSource(path_source);
-    if (!fileSource.is_open()) {
-        std::cout << "Unable to open input file: " + path_source << std::endl;
+    std::ifstream fileStream(path_source);
+    if (!fileStream.is_open()) {
+        std::cerr << "Unable to open input file: " + path_source << std::endl;
         return 0;
     }
+
+    std::streambuf *buff = std::cout.rdbuf();
+    std::ofstream file;
+    if (vm.count("output")) {
+        file.open(vm["output"].as<std::string>());
+        buff = file.rdbuf();
+    }
+    std::ostream outputStream(buff);
 
     std::vector<std::string> errorList;
     std::map<std::string, int> keywordsTable;
@@ -56,13 +75,18 @@ int main(int argc, char* argv[])
     Scanner scanner;
     Listing listing;
 
-    auto tokens = scanner.analyze(fileSource, keywordsTable, identifiersTable, constantsTable, errorList);
-    fileSource.close();
+    auto tokens = scanner.analyze(fileStream, keywordsTable, identifiersTable, constantsTable, errorList);
+    fileStream.close();
 
-    listing.printErrors(errorList);
-    listing.printTokens(tokens);
+    outputStream << "SIGNAL translator" << std::endl;
+    listing.printErrors(errorList, outputStream);
+    if (vm["lexer"].as<bool>()) {
+        listing.printTokens(tokens, outputStream);
+    }
 
-    std::cout << std::endl;
+    if (vm.count("output")) {
+        file.close();
+    }
 
     return 0;
 }
