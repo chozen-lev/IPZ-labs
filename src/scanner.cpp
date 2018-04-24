@@ -4,11 +4,7 @@ Scanner::Scanner()
 {
 }
 
-std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
-                                                     std::map<std::string, int> &keywords,
-                                                     std::map<std::string, int> &identifiers,
-                                                     std::map<std::string, int> &constans,
-                                                     std::vector<std::string> &errors)
+std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream, Tables tables, std::vector<std::string> &errors)
 {
     std::vector<std::shared_ptr<Token>> tokens;
 
@@ -40,10 +36,10 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
                 buff += symbol.value;
                 symbol.gets(stream);
             }
-            if (search(constans, buff) >= 0) {
-                lexCode = constans.at(buff);
+            if (tables.search(Tables::Range::constantsBegin, buff) >= 0) {
+                lexCode = tables.table(Tables::Range::constantsBegin).at(buff);
             } else {
-                lexCode = append(constans, TablesRange::constantsBegin, buff);
+                lexCode = tables.append(Tables::Range::constantsBegin, buff);
             }
             break;
         case Identifier:
@@ -52,12 +48,12 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
                 symbol.gets(stream);
             }
 
-            if (search(keywords, buff) >= 0) {
-                lexCode = keywords.at(buff);
-            } else if (search(identifiers, buff) >= 0) {
-                lexCode = identifiers.at(buff);
+            if (tables.search(Tables::Range::keywordsBegin, buff) >= 0) {
+                lexCode = tables.table(Tables::Range::keywordsBegin).at(buff);
+            } else if (tables.search(Tables::Range::identifiersBegin, buff) >= 0) {
+                lexCode = tables.table(Tables::Range::identifiersBegin).at(buff);
             } else {
-                lexCode = append(identifiers, TablesRange::identifiersBegin, buff);
+                lexCode = tables.append(Tables::Range::identifiersBegin, buff);
             }
             break;
         case Separator:
@@ -138,23 +134,6 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream,
     }
 
     return tokens;
-}
-
-int Scanner::search(std::map<std::string, int> &table, std::string &token)
-{
-    if (table.find(token) == std::end(table)) {
-        return -1;
-    }
-    return table.at(token);
-}
-
-int Scanner::append(std::map<std::string, int> &table, TablesRange rangeBegin, std::string &token)
-{
-    if (search(table, token) >= 0) {
-        return table.at(token);
-    }
-    table.insert(std::pair<std::string, int>(token, static_cast<int>(rangeBegin) + table.size()));
-    return table.at(token);
 }
 
 void Scanner::Symbol::gets(std::ifstream &stream)

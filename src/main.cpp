@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
+#include "tables.h"
 #include "scanner.h"
 #include "parser.h"
 #include "listing.h"
@@ -10,22 +11,6 @@
 
 namespace po = boost::program_options;
 
-void initializeTables(std::map<std::string, int> &keywords,
-                      std::map<std::string, int> &identifiers,
-                      std::map<std::string, int> &constants)
-{
-    keywords.clear();
-    identifiers.clear();
-    constants.clear();
-
-    // Scanner::TablesRange
-    keywords["PROGRAM"] = 300;
-    keywords["PROCEDURE"] = 301;
-    keywords["BEGIN"] = 302;
-    keywords["END"] = 303;
-    keywords["LABEL"] = 304;
-}
-
 int main(int argc, char* argv[])
 {
     std::string path_source;
@@ -34,7 +19,7 @@ int main(int argc, char* argv[])
     po::options_description desc("Allowed options");
     desc.add_options()
         ("version,v", "Program version")
-        ("file,f", po::value<std::string>(&path_source), "Source file to be compiled")
+        ("file,f", po::value<std::string>(&path_source)->default_value("test1.sig"), "Source file to be compiled")
         ("output,o", po::value<std::string>(), "Name of output file")
         ("lexer,l", po::bool_switch()->default_value(false), "Wheater dump lexer result or not.")
         ("help,h", "Produce help message");
@@ -68,21 +53,18 @@ int main(int argc, char* argv[])
     std::ostream outputStream(buff);
 
     std::vector<std::string> errorList;
-    std::map<std::string, int> keywordsTable;
-    std::map<std::string, int> identifiersTable;
-    std::map<std::string, int> constantsTable;
-    initializeTables(keywordsTable, identifiersTable, constantsTable);
+    Tables tables;
 
     Scanner scanner;
     Parser parser;
     Listing listing;
 
     // Lexical analyzer
-    auto tokens = scanner.analyze(fileStream, keywordsTable, identifiersTable, constantsTable, errorList);
+    auto tokens = scanner.analyze(fileStream, tables, errorList);
     fileStream.close();
 
     // Syntax analyzer
-    auto syntaxTree = parser.analyze(tokens, keywordsTable, identifiersTable, constantsTable, errorList);
+    auto syntaxTree = parser.analyze(tokens, tables, errorList);
 
     // Listing output
     outputStream << "SIGNAL translator" << std::endl;
@@ -90,6 +72,9 @@ int main(int argc, char* argv[])
     if (vm["lexer"].as<bool>()) {
         listing.printTokens(tokens, outputStream);
     }
+
+    outputStream << std::endl;
+    listing.printSyntaxTree(syntaxTree, tables, tokens, outputStream, 0);
 
     if (vm.count("output")) {
         file.close();

@@ -5,88 +5,71 @@ Parser::Parser()
     using lt = Labels::Tags;
     using shared_tree = std::shared_ptr<SyntaxTree>;
 
-    m_labelsFunction[lt::SignalProgram]         = [this](shared_tree node) -> void { this->signalProgram(node); };
-    m_labelsFunction[lt::Program]               = [this](shared_tree node) -> void { this->program(node); };
-    m_labelsFunction[lt::ProcedureIdentifier]   = [this](shared_tree node) -> void { this->procedureIdentifier(node); };
-    m_labelsFunction[lt::Block]                 = [this](shared_tree node) -> void { this->block(node); };
-    m_labelsFunction[lt::ParametersList]        = [this](shared_tree node) -> void { this->parametersList(node); };
-    m_labelsFunction[lt::Declarations]          = [this](shared_tree node) -> void { this->declarations(node); };
-    m_labelsFunction[lt::StatementsList]        = [this](shared_tree node) -> void { this->statementsList(node); };
-    m_labelsFunction[lt::LabelDeclarations]     = [this](shared_tree node) -> void { this->labelDeclarations(node); };
-    m_labelsFunction[lt::UnsignedInteger]       = [this](shared_tree node) -> void { this->unsignedInteger(node); };
-    m_labelsFunction[lt::LabelsList]            = [this](shared_tree node) -> void { this->labelsList(node); };
-    m_labelsFunction[lt::Empty]                 = [this](shared_tree node) -> void { this->empty(node); };
-    m_labelsFunction[lt::Identifier]            = [this](shared_tree node) -> void { this->identidier(node); };
+    m_labelsFunction[lt::SignalProgram]         = [this](auto node) -> bool { return this->signalProgram(node); };
+    m_labelsFunction[lt::Program]               = [this](auto node) -> bool { return this->program(node); };
+    m_labelsFunction[lt::ProcedureIdentifier]   = [this](auto node) -> bool { return this->procedureIdentifier(node); };
+    m_labelsFunction[lt::Block]                 = [this](auto node) -> bool { return this->block(node); };
+    m_labelsFunction[lt::ParametersList]        = [this](auto node) -> bool { return this->parametersList(node); };
+    m_labelsFunction[lt::Declarations]          = [this](auto node) -> bool { return this->declarations(node); };
+    m_labelsFunction[lt::StatementsList]        = [this](auto node) -> bool { return this->statementsList(node); };
+    m_labelsFunction[lt::LabelDeclarations]     = [this](auto node) -> bool { return this->labelDeclarations(node); };
+    m_labelsFunction[lt::UnsignedInteger]       = [this](auto node) -> bool { return this->unsignedInteger(node); };
+    m_labelsFunction[lt::LabelsList]            = [this](auto node) -> bool { return this->labelsList(node); };
+    m_labelsFunction[lt::Empty]                 = [this](auto node) -> bool { return this->empty(node); };
+    m_labelsFunction[lt::Identifier]            = [this](auto node) -> bool { return this->identidier(node); };
 }
 
 std::shared_ptr<SyntaxTree> Parser::analyze(std::vector<std::shared_ptr<Token>> &tokens,
-                                            std::map<std::string, int> &keywords,
-                                            std::map<std::string, int> &identifiers,
-                                            std::map<std::string, int> &constans,
+                                            Tables tables,
                                             std::vector<std::string> &errors)
 {
-    auto begin = std::begin(tokens);
-    auto end = std::end(tokens);
-
     return nullptr;
 }
 
-void Parser::signalProgram(std::shared_ptr<SyntaxTree> node)
+bool Parser::signalProgram(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::program(std::shared_ptr<SyntaxTree> node)
+bool Parser::program(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::procedureIdentifier(std::shared_ptr<SyntaxTree> node)
+bool Parser::procedureIdentifier(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::block(std::shared_ptr<SyntaxTree> node)
+bool Parser::block(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::parametersList(std::shared_ptr<SyntaxTree> node)
+bool Parser::parametersList(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::declarations(std::shared_ptr<SyntaxTree> node)
+bool Parser::declarations(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::statementsList(std::shared_ptr<SyntaxTree> node)
+bool Parser::statementsList(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::labelDeclarations(std::shared_ptr<SyntaxTree> node)
+bool Parser::labelDeclarations(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::unsignedInteger(std::shared_ptr<SyntaxTree> node)
+bool Parser::unsignedInteger(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::labelsList(std::shared_ptr<SyntaxTree> node)
+bool Parser::labelsList(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::empty(std::shared_ptr<SyntaxTree> node)
+bool Parser::empty(std::shared_ptr<SyntaxTree> node)
 {
-
 }
 
-void Parser::identidier(std::shared_ptr<SyntaxTree> node)
+bool Parser::identidier(std::shared_ptr<SyntaxTree> node)
 {
-
 }

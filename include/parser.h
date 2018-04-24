@@ -6,6 +6,8 @@
 #include <functional>
 
 #include "token.h"
+#include "labels.h"
+#include "tables.h"
 #include "syntaxtree.h"
 
 class Parser
@@ -14,24 +16,23 @@ public:
     Parser();
 
     std::shared_ptr<SyntaxTree> analyze(std::vector<std::shared_ptr<Token>> &tokens,
-                                        std::map<std::string, int> &keywords,
-                                        std::map<std::string, int> &identifiers,
-                                        std::map<std::string, int> &constans,
+                                        Tables tables,
                                         std::vector<std::string> &errors);
 
 private:
-    std::map<Labels::Tags, std::function<void(std::shared_ptr<SyntaxTree>)>> m_labelsFunction;
+    std::map<Labels::Tags,
+    std::function<bool(std::shared_ptr<SyntaxTree>)>> m_labelsFunction;
 
-    void signalProgram(std::shared_ptr<SyntaxTree> node);
-    void program(std::shared_ptr<SyntaxTree> node);
-    void procedureIdentifier(std::shared_ptr<SyntaxTree> node);
-    void block(std::shared_ptr<SyntaxTree> node);
-    void parametersList(std::shared_ptr<SyntaxTree> node);
-    void declarations(std::shared_ptr<SyntaxTree> node);
-    void statementsList(std::shared_ptr<SyntaxTree> node);
-    void labelDeclarations(std::shared_ptr<SyntaxTree> node);
-    void unsignedInteger(std::shared_ptr<SyntaxTree> node);
-    void labelsList(std::shared_ptr<SyntaxTree> node);
-    void empty(std::shared_ptr<SyntaxTree> node);
-    void identidier(std::shared_ptr<SyntaxTree> node);
+    bool signalProgram(std::shared_ptr<SyntaxTree> node);
+    bool program(std::shared_ptr<SyntaxTree> node);
+    bool procedureIdentifier(std::shared_ptr<SyntaxTree> node);
+    bool block(std::shared_ptr<SyntaxTree> node);
+    bool parametersList(std::shared_ptr<SyntaxTree> node);
+    bool declarations(std::shared_ptr<SyntaxTree> node);
+    bool statementsList(std::shared_ptr<SyntaxTree> node);
+    bool labelDeclarations(std::shared_ptr<SyntaxTree> node);
+    bool unsignedInteger(std::shared_ptr<SyntaxTree> node);
+    bool labelsList(std::shared_ptr<SyntaxTree> node);
+    bool empty(std::shared_ptr<SyntaxTree> node);
+    bool identidier(std::shared_ptr<SyntaxTree> node);
 };
