@@ -6,6 +6,7 @@
 #include <map>
 
 #include "token.h"
+#include "tables.h"
 
 #define ASCII_SIZE 128
 
@@ -19,11 +20,6 @@ class Scanner
         Separator,
         Comment,
 //        Multichar,
-    };
-    enum class TablesRange : int {
-        keywordsBegin = 300,
-        identifiersBegin = 500,
-        constantsBegin = 700
     };
 
     struct Symbol {
@@ -54,13 +50,5 @@ class Scanner
 public:
     Scanner();
 
-    std::vector<std::shared_ptr<Token>> analyze(std::ifstream &stream,
-                                                std::map<std::string, int> &keywords,
-                                                std::map<std::string, int> &identifiers,
-                                                std::map<std::string, int> &constans,
-                                                std::vector<std::string> &errors);
-
-private:
-    int search(std::map<std::string, int> &table, std::string &token);
-    int append(std::map<std::string, int> &table, TablesRange rangeBegin, std::string &token);
+    void analyze(std::ifstream &stream, Tables &tables, std::vector<std::string> &errors);
 };
