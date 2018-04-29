@@ -1,73 +1,74 @@
 #include "parser.h"
 
+#define Q_UNUSED(x) (void)x;
+
 Parser::Parser()
 {
 }
 
 std::shared_ptr<SyntaxTree> Parser::analyze(Tables &tables, std::vector<std::string> &errors)
 {
-    std::shared_ptr<SyntaxTree> tree;
+    auto tree = std::make_shared<SyntaxTree>();
 
-    auto tokens = tables.tokens();
-    auto begin = std::begin(tokens);
-    auto end = std::end(tokens);
+    auto builder = Builder(tree, tables);
+    auto tokens = TokenIterator(tables.tokens());
 
-    signalProgram(tree, begin, end, tables, errors);
+    signalProgram(builder, tokens, errors);
 
     return tree;
 }
 
-bool Parser::signalProgram(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::signalProgram(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    node = std::make_shared<SyntaxTree>(Labels::Tags::SignalProgram);
-    if (!program(node, token, end, tables, errors)) {
+    builder.node->setLabel(Labels::Tags::SignalProgram);
+    if (!program(builder, tokens, errors)) {
         return false;
     }
     return true;
 }
 
-bool Parser::program(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::program(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::Program);
+    builder.node = builder.node->addChild(Labels::Tags::Program);
 
-    if (leaf(child, token, end, tables, errors, PROGRAM_CODE, Tables::Range::keywordsBegin, true)) {
-        if (!procedureIdentifier(child, token, end, tables, errors)) {
+    if (leaf(builder, tokens, errors, PROGRAM_CODE, Tables::Range::keywordsBegin)) {
+        if (!procedureIdentifier(builder, tokens, errors)) {
             return false;
         }
 
-        if (!leaf(child, token, end, tables, errors, ';', static_cast<Tables::Range>(0), true)) {
+        if (!leaf(builder, tokens, errors, ';')) {
             return false;
         }
 
-        if (!block(child, token, end, tables, errors)) {
+        if (!block(builder, tokens, errors)) {
             return false;
         }
 
-        if (!leaf(child, token, end, tables, errors, '.', static_cast<Tables::Range>(0), true)) {
+        if (!leaf(builder, tokens, errors, '.')) {
             return false;
         }
 
         return true;
     }
 
-    if (leaf(child, token, end, tables, errors, PROCEDURE_CODE, Tables::Range::keywordsBegin, true)) {
-        if (!procedureIdentifier(child, token, end, tables, errors)) {
+    if (leaf(builder, tokens, errors, PROCEDURE_CODE, Tables::Range::keywordsBegin)) {
+        if (!procedureIdentifier(builder, tokens, errors)) {
             return false;
         }
 
-        if (!parametersList(child, token, end, tables, errors)) {
+        if (!parametersList(builder, tokens, errors)) {
             return false;
         }
 
-        if (!leaf(child, token, end, tables, errors, ';', static_cast<Tables::Range>(0), true)) {
+        if (!leaf(builder, tokens, errors, ';')) {
             return false;
         }
 
-        if (!block(child, token, end, tables, errors)) {
+        if (!block(builder, tokens, errors)) {
             return false;
         }
 
-        if (!leaf(child, token, end, tables, errors, ';', static_cast<Tables::Range>(0), true)) {
+        if (!leaf(builder, tokens, errors, ';')) {
             return false;
         }
 
@@ -77,150 +78,154 @@ bool Parser::program(auto &node, auto &token, auto end, auto &tables, auto &erro
     return false;
 }
 
-bool Parser::procedureIdentifier(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::procedureIdentifier(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::ProcedureIdentifier);
-    if (!identidier(child, token, end, tables, errors)) {
+    builder.node = builder.node->addChild(Labels::Tags::ProcedureIdentifier);
+    if (!identidier(builder, tokens, errors)) {
         return false;
     }
     return true;
 }
 
-bool Parser::block(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::block(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::Block);
+    builder.node = builder.node->addChild(Labels::Tags::Block);
 
-    if (!declarations(child, token, end, tables, errors)) {
+    if (!declarations(builder, tokens, errors)) {
         return false;
     }
 
-    if (!leaf(child, token, end, tables, errors, BEGIN_CODE, Tables::Range::keywordsBegin, true)) {
+    if (!leaf(builder, tokens, errors, BEGIN_CODE, Tables::Range::keywordsBegin)) {
         return false;
     }
 
-    if (!statementsList(child, token, end, tables, errors)) {
+    if (!statementsList(builder, tokens, errors)) {
         return false;
     }
 
-    if (!leaf(child, token, end, tables, errors, END_CODE, Tables::Range::keywordsBegin, true)) {
+    if (!leaf(builder, tokens, errors, END_CODE, Tables::Range::keywordsBegin)) {
         return false;
     }
 
     return true;
 }
 
-bool Parser::parametersList(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::parametersList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::Block);
+    builder.node = builder.node->addChild(Labels::Tags::Block);
 
-    if (!leaf(child, token, end, tables, errors, static_cast<int>('('), static_cast<Tables::Range>(0), false)) {
-        child->addChild(Labels::Tags::Empty);
+    if (!leaf(builder, tokens, errors, static_cast<int>('('), static_cast<Tables::Range>(0), false)) {
+        builder.node->addChild(Labels::Tags::Empty);
         return true;
     }
 
-    if (!declarationsList(child, token, end, tables, errors)) {
+    if (!declarationsList(builder, tokens, errors)) {
         return false;
     }
 
-    if (!leaf(child, token, end, tables, errors, static_cast<int>(')'), static_cast<Tables::Range>(0), true)) {
+    if (!leaf(builder, tokens, errors, static_cast<int>(')'))) {
         return false;
     }
 
     return true;
 }
 
-bool Parser::declarations(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::declarations(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::Declarations);
-    if (!labelDeclarations(child, token, end, tables, errors)) {
+    builder.node = builder.node->addChild(Labels::Tags::Declarations);
+    if (!labelDeclarations(builder, tokens, errors)) {
         return false;
     }
     return true;
 }
 
-bool Parser::declarationsList(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::declarationsList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::DeclarationsList);
-    child->addChild(Labels::Tags::Empty);
+    Q_UNUSED(tokens)
+    builder.node = builder.node->addChild(Labels::Tags::DeclarationsList);
+    builder.node->addChild(Labels::Tags::Empty);
     return true;
 }
 
-bool Parser::statementsList(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::statementsList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::StatementsList);
-    child->addChild(Labels::Tags::Empty);
+    Q_UNUSED(tokens)
+    builder.node = builder.node->addChild(Labels::Tags::StatementsList);
+    builder.node->addChild(Labels::Tags::Empty);
     return true;
 }
 
-bool Parser::labelDeclarations(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::labelDeclarations(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::LabelDeclarations);
+    builder.node = builder.node->addChild(Labels::Tags::LabelDeclarations);
 
-    if (!leaf(child, token, end, tables, errors, LABEL_CODE, Tables::Range::keywordsBegin, false)) {
-        child->addChild(Labels::Tags::Empty);
+    if (!leaf(builder, tokens, errors, LABEL_CODE, Tables::Range::keywordsBegin, false)) {
+        builder.node->addChild(Labels::Tags::Empty);
         return true;
     }
 
-    if (!unsignedInteger(child, token, end, tables, errors)) {
+    if (!unsignedInteger(builder, tokens, errors)) {
         return false;
     }
 
-    if (!labelsList(child, token, end, tables, errors)) {
+    if (!labelsList(builder, tokens, errors)) {
         return false;
     }
 
-    if (!leaf(child, token, end, tables, errors, ';', static_cast<Tables::Range>(0), true)) {
+    if (!leaf(builder, tokens, errors, ';')) {
         return false;
     }
 
     return true;
 }
 
-bool Parser::unsignedInteger(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::unsignedInteger(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::UnsignedInteger);
-    if (!leaf(child, token, end, tables, errors, token->get()->code(), Tables::Range::constantsBegin, true)) {
+    builder.node = builder.node->addChild(Labels::Tags::UnsignedInteger);
+    if (!leaf(builder, tokens, errors, tokens.token->get()->code(), Tables::Range::constantsBegin)) {
         return false;
     }
     return true;
 }
 
-bool Parser::labelsList(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::labelsList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::LabelsList);
+    builder.node = builder.node->addChild(Labels::Tags::LabelsList);
 
-    if (!leaf(child, token, end, tables, errors, ',', static_cast<Tables::Range>(0), false)) {
-        child->addChild(Labels::Tags::Empty);
+    if (!leaf(builder, tokens, errors, ',', static_cast<Tables::Range>(0), false)) {
+        builder.node->addChild(Labels::Tags::Empty);
         return true;
     }
 
-    if (!unsignedInteger(child, token, end, tables, errors)) {
+    if (!unsignedInteger(builder, tokens, errors)) {
         return false;
     }
 
-    if (!labelsList(child, token, end, tables, errors)) {
+    if (!labelsList(builder, tokens, errors)) {
         return false;
     }
 
     return true;
 }
 
-bool Parser::identidier(auto &node, auto &token, auto end, auto &tables, auto &errors)
+bool Parser::identidier(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    auto child = node->addChild(Labels::Tags::Identifier);
-    if (!leaf(child, token, end, tables, errors, token->get()->code(), Tables::Range::identifiersBegin, true)) {
+    builder.node = builder.node->addChild(Labels::Tags::Identifier);
+    if (!leaf(builder, tokens, errors, tokens.token->get()->code(), Tables::Range::identifiersBegin)) {
         return false;
     }
     return true;
 }
 
-bool Parser::leaf(auto &node, auto &token, auto end, auto &tables, auto &errors, int code, Tables::Range range, bool required)
+bool Parser::leaf(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors, int code, Tables::Range range, bool required)
 {
-    if (token == end) {
+    if (tokens.token == tokens.end) {
         errors.push_back("Parser: Error: '.' expected but EOF found");
         return false;
     }
-    if (range != static_cast<Tables::Range>(0) && (tables.getRange(token->get()->code()) != range || token->get()->code() != code)) {
+
+    auto token = *tokens.token->get();
+    if (range != static_cast<Tables::Range>(0) && (builder.tables.getRange(token.code()) != range || token.code() != code)) {
         std::string buff;
         switch (range) {
         case Tables::Range::keywordsBegin:
@@ -233,25 +238,26 @@ bool Parser::leaf(auto &node, auto &token, auto end, auto &tables, auto &errors,
             buff = "Identifier";
             break;
         }
-        errors.push_back("Parser: Error (line: " + std::to_string((token)->get()->y())
-                          + ", column: " + std::to_string(token->get()->x()) + "): "
-                          + buff + " '" + tables.name(code)
-                          + "' expected but '" + token->get()->name() + "' found");
+        errors.push_back("Parser: Error (line: " + std::to_string(token.y())
+                          + ", column: " + std::to_string(token.x()) + "): "
+                          + buff + " '" + builder.tables.name(code)
+                          + "' expected but '" + token.name() + "' found");
         return false;
     }
-    if (code != -1 && token->get()->code() != code) {
+
+    if (code != -1 && token.code() != code) {
         if (!required) {
             return false;
         }
-        errors.push_back("Parser: Error (line: "
-                         + std::to_string((token)->get()->y())
-                         + ", column: "
-                         + std::to_string(token->get()->x())
-                         + "): " + "'" + char(code)
-                         + "' expected but '" + token->get()->name() + "' found");
+        errors.push_back("Parser: Error (line: " + std::to_string(token.y())
+                         + ", column: " + std::to_string(token.x())
+                         + "): " + "'" + char(code) + "' expected but '"
+                         + token.name() + "' found");
         return false;
     }
-    node->addChild(token->get()->code());
-    ++token;
+
+    builder.node->addChild(token.code());
+    ++tokens.token;
+
     return true;
 }

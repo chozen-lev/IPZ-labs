@@ -22,6 +22,8 @@ public:
     Labels::Tags label() const;
     int code() const;
 
+    void setLabel(Labels::Tags label);
+
 private:
     std::vector<std::shared_ptr<SyntaxTree>> m_childrens;
 

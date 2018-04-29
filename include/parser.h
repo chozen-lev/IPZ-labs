@@ -12,24 +12,45 @@
 
 class Parser
 {
+    struct Builder {
+        Builder(std::shared_ptr<SyntaxTree> &_node, Tables &_tables)
+            : node(_node)
+            , tables(_tables)
+        {
+        }
+
+        std::shared_ptr<SyntaxTree> node;
+        Tables tables;
+    };
+    struct TokenIterator {
+        explicit TokenIterator(std::vector<std::shared_ptr<Token>> &tokens)
+            : token(std::begin(tokens))
+            , end(std::end(tokens))
+        {
+        }
+
+        std::vector<std::shared_ptr<Token>>::iterator token;
+        std::vector<std::shared_ptr<Token>>::const_iterator end;
+    };
+
 public:
     Parser();
 
     std::shared_ptr<SyntaxTree> analyze(Tables &tables, std::vector<std::string> &errors);
 
 private:
-    bool signalProgram(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool program(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool procedureIdentifier(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool block(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool parametersList(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool declarations(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool declarationsList(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool statementsList(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool labelDeclarations(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool unsignedInteger(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool labelsList(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool identidier(auto &node, auto &token, auto end, auto &tables, auto &errors);
-    bool leaf(auto &node, auto &token, auto end, auto &tables, auto &errors,
-              int code = -1, Tables::Range range = static_cast<Tables::Range>(0), bool required = true);
+    bool signalProgram(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool program(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool procedureIdentifier(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool block(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool parametersList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool declarations(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool declarationsList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool statementsList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool labelDeclarations(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool unsignedInteger(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool labelsList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool identidier(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
+    bool leaf(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors, int code = -1,
+              Tables::Range range = static_cast<Tables::Range>(0), bool required = true);
 };

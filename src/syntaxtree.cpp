@@ -50,3 +50,8 @@ int SyntaxTree::code() const
 {
     return m_code;
 }
+
+void SyntaxTree::setLabel(Labels::Tags label)
+{
+    m_label = label;
+}
