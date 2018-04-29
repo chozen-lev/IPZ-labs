@@ -60,21 +60,21 @@ int main(int argc, char* argv[])
     Listing listing;
 
     // Lexical analyzer
-    auto tokens = scanner.analyze(fileStream, tables, errorList);
+    scanner.analyze(fileStream, tables, errorList);
     fileStream.close();
 
     // Syntax analyzer
-    auto syntaxTree = parser.analyze(tokens, tables, errorList);
+    auto syntaxTree = parser.analyze(tables, errorList);
 
     // Listing output
     outputStream << "SIGNAL translator" << std::endl;
     listing.printErrors(errorList, outputStream);
     if (vm["lexer"].as<bool>()) {
-        listing.printTokens(tokens, outputStream);
+        listing.printTokens(tables.tokens(), outputStream);
     }
 
     outputStream << std::endl;
-    listing.printSyntaxTree(syntaxTree, tables, tokens, outputStream, 0);
+    listing.printSyntaxTree(syntaxTree, tables, outputStream);
 
     if (vm.count("output")) {
         file.close();

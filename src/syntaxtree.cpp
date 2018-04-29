@@ -12,14 +12,28 @@ SyntaxTree::SyntaxTree(int code)
 {
 }
 
-void SyntaxTree::addChild(std::shared_ptr<SyntaxTree> child)
+SyntaxTree::SyntaxTree(Labels::Tags label)
+    : m_label(label)
+    , m_code(-1)
 {
-    m_childrens.push_back(child);
 }
 
-void SyntaxTree::addChild(int code)
+std::shared_ptr<SyntaxTree> &SyntaxTree::addChild(std::shared_ptr<SyntaxTree> &child)
+{
+    m_childrens.push_back(child);
+    return child;
+}
+
+std::shared_ptr<SyntaxTree> &SyntaxTree::addChild(int code)
 {
     m_childrens.push_back(std::make_shared<SyntaxTree>(code));
+    return m_childrens.back();
+}
+
+std::shared_ptr<SyntaxTree> &SyntaxTree::addChild(Labels::Tags label)
+{
+    m_childrens.push_back(std::make_shared<SyntaxTree>(label));
+    return m_childrens.back();
 }
 
 std::vector<std::shared_ptr<SyntaxTree>> &SyntaxTree::childrens()

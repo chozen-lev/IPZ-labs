@@ -2,31 +2,31 @@
 
 Tables::Tables()
 {
-    // Scanner::TablesRange
-    m_keywords["PROGRAM"] = 300;
-    m_keywords["PROCEDURE"] = 301;
-    m_keywords["BEGIN"] = 302;
-    m_keywords["END"] = 303;
-    m_keywords["LABEL"] = 304;
+    // Tables::Range
+    m_keywords["PROGRAM"] = PROGRAM_CODE;
+    m_keywords["PROCEDURE"] = PROCEDURE_CODE;
+    m_keywords["BEGIN"] = BEGIN_CODE;
+    m_keywords["END"] = END_CODE;
+    m_keywords["LABEL"] = LABEL_CODE;
 }
 
-int Tables::search(Range rangeBegin, std::string &token) const
+int Tables::search(Range rangeBegin, std::string name)
 {
-    auto tb = m_constants;
-    if (tb.find(token) == std::end(tb)) {
+    std::map<std::string, int> &table = this->table(rangeBegin);
+    if (table.find(name) == std::end(table)) {
         return -1;
     }
-    return tb.at(token);
+    return table.at(name);
 }
 
-int Tables::append(Tables::Range rangeBegin, std::string &token)
+int Tables::append(Tables::Range rangeBegin, std::string name)
 {
-    auto tb = m_constants;
-    if (search(rangeBegin, token) >= 0) {
-        return tb.at(token);
+    std::map<std::string, int> &table = this->table(rangeBegin);
+    if (search(rangeBegin, name) >= 0) {
+        return table.at(name);
     }
-    tb.insert(std::pair<std::string, int>(token, static_cast<int>(rangeBegin) + tb.size()));
-    return tb.at(token);
+    table.insert(std::pair<std::string, int>(name, static_cast<int>(rangeBegin) + table.size()));
+    return table.at(name);
 }
 
 std::map<std::string, int> &Tables::table(Tables::Range rangeBegin)
@@ -45,16 +45,46 @@ std::map<std::string, int> &Tables::table(Tables::Range rangeBegin)
 
 std::map<std::string, int> &Tables::table(int code)
 {
-    auto rcode = static_cast<Range>(code);
+    auto range = getRange(code);
+    return table(range);
+}
 
-    if (rcode >= Range::keywordsBegin && code < m_keywords.size()) {
-        return m_keywords;
+std::string Tables::name(int code)
+{
+    std::map<std::string, int> table = this->table(getRange(code));
+
+    auto it = std::find_if(std::begin(table), std::end(table),
+                              [code](const auto& t) -> bool {
+                                  return t.second == code;
+                              }
+                          );
+    return it->first;
+}
+
+void Tables::addToken(Token token)
+{
+    m_tokens.push_back(std::make_shared<Token>(token));
+}
+
+std::vector<std::shared_ptr<Token>> &Tables::tokens()
+{
+    return m_tokens;
+}
+
+Tables::Range Tables::getRange(int code) const
+{
+    int keywordsBegin = static_cast<int>(Range::keywordsBegin);
+    int identifiersBegin = static_cast<int>(Range::identifiersBegin);
+    int constantsBegin = static_cast<int>(Range::constantsBegin);
+
+    if (code >= keywordsBegin && code < keywordsBegin + m_keywords.size()) {
+        return Range::keywordsBegin;
     }
-    if (rcode >= Range::identifiersBegin && code < m_identifiers.size()) {
-        return m_identifiers;
+    if (code >= identifiersBegin && code < identifiersBegin + m_identifiers.size()) {
+        return Range::identifiersBegin;
     }
-    if (rcode >= Range::constantsBegin && code < m_constants.size()) {
-        return m_constants;
+    if (code >= constantsBegin && code < constantsBegin + m_constants.size()) {
+        return Range::constantsBegin;
     }
     throw std::runtime_error("Invalid token code! There is any token with such code.");
 }

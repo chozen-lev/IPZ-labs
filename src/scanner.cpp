@@ -4,21 +4,17 @@ Scanner::Scanner()
 {
 }
 
-std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream, Tables tables, std::vector<std::string> &errors)
+void Scanner::analyze(std::ifstream &stream, Tables &tables, std::vector<std::string> &errors)
 {
-    std::vector<std::shared_ptr<Token>> tokens;
-
     Symbol symbol;
     int x = 1, y = 1;
     std::string buff;
-    int lexCode;
-    bool suppressOutput;
 
     symbol.gets(stream);
     while (!stream.eof()) {
         buff.clear();
-        lexCode = 0;
-        suppressOutput = false;
+        int lexCode = 0;
+        bool suppressOutput = false;
 
         switch (static_cast<int>(symbol.attr)) {
         case Whitespace:
@@ -108,7 +104,7 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream, Tabl
                     suppressOutput = true;
                 }
             } else {
-                tokens.push_back(std::make_shared<Token>(Token { "(", '(', { x++, y } }));
+                tables.addToken(Token { "(", '(', { x++, y } });
                 buff += symbol.value;
                 lexCode = symbol.value;
             }
@@ -128,12 +124,10 @@ std::vector<std::shared_ptr<Token>> Scanner::analyze(std::ifstream &stream, Tabl
             break;
         }
         if (!suppressOutput) {
-            tokens.push_back(std::make_shared<Token>(Token { buff, lexCode, { x, y } }));
+            tables.addToken(Token { buff, lexCode, { x, y } });
         }
         x += buff.size();
     }
-
-    return tokens;
 }
 
 void Scanner::Symbol::gets(std::ifstream &stream)

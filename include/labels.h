@@ -13,6 +13,7 @@ enum class Tags : int {
     Block,
     ParametersList,
     Declarations,
+    DeclarationsList,
     StatementsList,
     LabelDeclarations,
     UnsignedInteger,

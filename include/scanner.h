@@ -50,5 +50,5 @@ class Scanner
 public:
     Scanner();
 
-    std::vector<std::shared_ptr<Token>> analyze(std::ifstream &stream, Tables tables, std::vector<std::string> &errors);
+    void analyze(std::ifstream &stream, Tables &tables, std::vector<std::string> &errors);
 };

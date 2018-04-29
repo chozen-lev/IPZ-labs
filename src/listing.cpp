@@ -5,14 +5,14 @@ Listing::Listing()
 
 }
 
-void Listing::printErrors(std::vector<std::string> errors, std::ostream &stream)
+void Listing::printErrors(std::vector<std::string> errors, std::ostream &stream) const
 {
     for (auto err: errors) {
         stream << err << std::endl;
     }
 }
 
-void Listing::printTokens(std::vector<std::shared_ptr<Token>> tokens, std::ostream &stream)
+void Listing::printTokens(std::vector<std::shared_ptr<Token>> tokens, std::ostream &stream) const
 {
     for (auto token: tokens) {
         stream << token->y() << "\t" << token->x() << "\t"
@@ -22,9 +22,8 @@ void Listing::printTokens(std::vector<std::shared_ptr<Token>> tokens, std::ostre
 
 void Listing::printSyntaxTree(std::shared_ptr<SyntaxTree> node,
                               Tables tables,
-                              std::vector<std::shared_ptr<Token>> tokens,
                               std::ostream &stream,
-                              int level)
+                              int level) const
 {
     if (node == nullptr) {
         return;
@@ -33,8 +32,8 @@ void Listing::printSyntaxTree(std::shared_ptr<SyntaxTree> node,
         stream << "..";
     }
 
+    auto tokens = tables.tokens();
     if (node->label() == Labels::Tags::Leaf) {
-        auto table = tables.table(node->code());
         auto token = std::find_if(std::begin(tokens), std::end(tokens), [node] (auto &t) -> bool {
             return t->code() == node->code();
         });
@@ -43,7 +42,8 @@ void Listing::printSyntaxTree(std::shared_ptr<SyntaxTree> node,
         stream << Labels::labelsList.at(node->label()) << std::endl;
     }
 
+    ++level;
     for (auto child: node->childrens()) {
-        printSyntaxTree(child, tables, tokens, stream, ++level);
+        printSyntaxTree(child, tables, stream, level);
     }
 }
