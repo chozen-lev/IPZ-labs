@@ -10,8 +10,6 @@
 #define VERSION "0.3.9"
 #define REPOSITORY "https://github.com/chozen-lev/SIGNAL-Translator"
 
-#define DEBUG
-
 namespace po = boost::program_options;
 
 int main(int argc, char* argv[])
@@ -76,22 +74,22 @@ int main(int argc, char* argv[])
     listing.printErrors(errorList, std::cout);
 
     if (vm.count("lexer")) {
-        std::ofstream lexerStream(vm["lexer"].as<std::string>().empty() ? path_file + "lexer" : vm["lexer"].as<std::string>());
-        listing.printTokens(tables.tokens(), lexerStream);
-        lexerStream.close();
     #ifdef DEBUG
         std::cout << std::endl;
         listing.printTokens(tables.tokens(), std::cout);
     #endif
+        std::ofstream lexerStream(vm["lexer"].as<std::string>().empty() ? path_file + "lexer" : vm["lexer"].as<std::string>());
+        listing.printTokens(tables.tokens(), lexerStream);
+        lexerStream.close();
     }
     if (vm.count("parser")) {
-        std::ofstream parserStream(vm["parser"].as<std::string>().empty() ? path_file + "parser" : vm["parser"].as<std::string>());
-        listing.printSyntaxTree(syntaxTree, tables, parserStream);
-        parserStream.close();
     #ifdef DEBUG
         std::cout << std::endl;
         listing.printSyntaxTree(syntaxTree, tables, std::cout);
     #endif
+        std::ofstream parserStream(vm["parser"].as<std::string>().empty() ? path_file + "parser" : vm["parser"].as<std::string>());
+        listing.printSyntaxTree(syntaxTree, tables, parserStream);
+        parserStream.close();
     }
 
     outputStream.close();

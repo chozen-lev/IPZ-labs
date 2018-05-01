@@ -29,6 +29,7 @@ const std::map<Tags, std::string> labelsList = {
     { Tags::Block, "<block>" },
     { Tags::ParametersList, "<parameters-list>" },
     { Tags::Declarations, "<declarations>" },
+    { Tags::DeclarationsList, "<declarations-list>" },
     { Tags::StatementsList, "<statements-list>" },
     { Tags::LabelDeclarations, "<label-declarations>" },
     { Tags::UnsignedInteger, "<unsigned-integer>" },

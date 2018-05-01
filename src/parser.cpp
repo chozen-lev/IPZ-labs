@@ -31,7 +31,7 @@ bool Parser::program(Builder builder, TokenIterator &tokens, std::vector<std::st
 {
     builder.node = builder.node->addChild(Labels::Tags::Program);
 
-    if (leaf(builder, tokens, errors, PROGRAM_CODE, Tables::Range::keywordsBegin)) {
+    if (leaf(builder, tokens, errors, PROGRAM_CODE, Tables::Range::keywordsBegin, false)) {
         if (!procedureIdentifier(builder, tokens, errors)) {
             return false;
         }
@@ -226,6 +226,9 @@ bool Parser::leaf(Builder builder, TokenIterator &tokens, std::vector<std::strin
 
     auto token = *tokens.token->get();
     if (range != static_cast<Tables::Range>(0) && (builder.tables.getRange(token.code()) != range || token.code() != code)) {
+        if (!required) {
+            return false;
+        }
         std::string buff;
         switch (range) {
         case Tables::Range::keywordsBegin:
