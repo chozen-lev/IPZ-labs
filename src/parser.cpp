@@ -220,7 +220,7 @@ bool Parser::identidier(Builder builder, TokenIterator &tokens, std::vector<std:
 bool Parser::leaf(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors, int code, Tables::Range range, bool required)
 {
     if (tokens.token == tokens.end) {
-        errors.push_back("Parser: Error: '.' expected but EOF found");
+        errors.push_back("\033[1;37Parser:\033[0m \033[1;31Error:\033[0m '.' expected but EOF found");
         return false;
     }
 
@@ -238,8 +238,8 @@ bool Parser::leaf(Builder builder, TokenIterator &tokens, std::vector<std::strin
             buff = "Identifier";
             break;
         }
-        errors.push_back("Parser: Error (line: " + std::to_string(token.y())
-                          + ", column: " + std::to_string(token.x()) + "): "
+        errors.push_back("\033[1;37mParser:\033[0m \033[1;31mError (line: " + std::to_string(token.y())
+                          + ", column: " + std::to_string(token.x()) + "):\033[0m "
                           + buff + " '" + builder.tables.name(code)
                           + "' expected but '" + token.name() + "' found");
         return false;
@@ -249,9 +249,9 @@ bool Parser::leaf(Builder builder, TokenIterator &tokens, std::vector<std::strin
         if (!required) {
             return false;
         }
-        errors.push_back("Parser: Error (line: " + std::to_string(token.y())
+        errors.push_back("\033[1;37mParser:\033[0m \033[1;31mError (line: " + std::to_string(token.y())
                          + ", column: " + std::to_string(token.x())
-                         + "): " + "'" + char(code) + "' expected but '"
+                         + "):\033[0m " + "'" + char(code) + "' expected but '"
                          + token.name() + "' found");
         return false;
     }

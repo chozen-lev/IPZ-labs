@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include <boost/program_options.hpp>
 
 #include "tables.h"
@@ -6,8 +7,10 @@
 #include "parser.h"
 #include "listing.h"
 
-#define VERSION "0.3.1"
+#define VERSION "0.3.9"
 #define REPOSITORY "https://github.com/chozen-lev/SIGNAL-Translator"
+
+#define DEBUG
 
 namespace po = boost::program_options;
 
@@ -16,41 +19,49 @@ int main(int argc, char* argv[])
     std::string path_source;
 
     // Declare the supported options.
-    po::options_description desc("Allowed options");
+    po::options_description desc("Usage: csignal [options] file...\nOptions");
     desc.add_options()
-        ("version,v", "Program version")
-        ("file,f", po::value<std::string>(&path_source)->default_value("test1.sig"), "Source file to be compiled")
-        ("output,o", po::value<std::string>(), "Name of output file")
-        ("lexer,l", po::bool_switch()->default_value(false), "Wheater dump lexer result or not.")
-        ("help,h", "Produce help message");
+        ("input-file,f", po::value<std::string>(&path_source), "Source file to be compiled.")
+        ("output,o", po::value<std::string>()->implicit_value(""), "Place the output into <arg>.")
+        ("lexer,l", po::value<std::string>()->implicit_value(""), "Place the tokens list into <arg>.")
+        ("parser,p", po::value<std::string>()->implicit_value(""), "Place the syntax tree into <arg>.")
+        ("help,h", "Display this information.")
+        ("version,v", "Display compiler version information.");
 
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
+    try {
+        po::positional_options_description p;
+        p.add("input-file", -1);
+        po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+        po::notify(vm);
+    } catch (const po::error &e) {
+        std::cerr << "\033[1;31merror:\033[0m " << "Couldn't parse command line arguments properly:\n";
+        std::cerr << e.what() << '\n' << '\n';
+        std::cerr << desc << '\n';
+        return EXIT_FAILURE;
+    }
 
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        return EXIT_SUCCESS;
+    }
     if (vm.count("version")) {
-        std::cerr << "Program version " << VERSION << std::endl << std::endl;
-        std::cerr << "GitHub repository: " << REPOSITORY << std::endl;
-        return 1;
+        std::cout << "Program version " << VERSION << std::endl;
+        std::cout << "GitHub repository: " << REPOSITORY << std::endl;
+        return EXIT_SUCCESS;
     }
-    if (vm.count("help") || vm.count("file") == 0) {
+    if (path_source.empty()) {
         std::cerr << desc << std::endl;
-        return 1;
+        return EXIT_FAILURE;
     }
-
     std::ifstream fileStream(path_source);
     if (!fileStream.is_open()) {
-        std::cerr << "Unable to open input file: " + path_source << std::endl;
-        return 1;
+        std::cerr << "\033[1;31merror:\033[0m " << path_source << ": No such file or direcory" << std::endl;
+        return EXIT_FAILURE;
     }
 
-    std::streambuf *buff = std::cout.rdbuf();
-    std::ofstream file;
-    if (vm.count("output")) {
-        file.open(vm["output"].as<std::string>());
-        buff = file.rdbuf();
-    }
-    std::ostream outputStream(buff);
+    std::string path_file = path_source.substr(0, path_source.rfind(".") + 1);
+    std::ofstream outputStream(path_file + "asm");
 
     std::vector<std::string> errorList;
     Tables tables;
@@ -59,26 +70,31 @@ int main(int argc, char* argv[])
     Parser parser;
     Listing listing;
 
-    // Lexical analyzer
     scanner.analyze(fileStream, tables, errorList);
-    fileStream.close();
-
-    // Syntax analyzer
     auto syntaxTree = parser.analyze(tables, errorList);
 
-    // Listing output
-    outputStream << "SIGNAL translator" << std::endl;
-    listing.printErrors(errorList, outputStream);
-    if (vm["lexer"].as<bool>()) {
-        listing.printTokens(tables.tokens(), outputStream);
+    listing.printErrors(errorList, std::cout);
+
+    if (vm.count("lexer")) {
+        std::ofstream lexerStream(vm["lexer"].as<std::string>().empty() ? path_file + "lexer" : vm["lexer"].as<std::string>());
+        listing.printTokens(tables.tokens(), lexerStream);
+        lexerStream.close();
+    #ifdef DEBUG
+        std::cout << std::endl;
+        listing.printTokens(tables.tokens(), std::cout);
+    #endif
+    }
+    if (vm.count("parser")) {
+        std::ofstream parserStream(vm["parser"].as<std::string>().empty() ? path_file + "parser" : vm["parser"].as<std::string>());
+        listing.printSyntaxTree(syntaxTree, tables, parserStream);
+        parserStream.close();
+    #ifdef DEBUG
+        std::cout << std::endl;
+        listing.printSyntaxTree(syntaxTree, tables, std::cout);
+    #endif
     }
 
-    outputStream << std::endl;
-    listing.printSyntaxTree(syntaxTree, tables, outputStream);
+    outputStream.close();
 
-    if (vm.count("output")) {
-        file.close();
-    }
-
-    return 0;
+    return errorList.empty() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
