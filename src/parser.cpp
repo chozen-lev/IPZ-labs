@@ -1,7 +1,5 @@
 #include "parser.h"
 
-#define Q_UNUSED(x) (void)x;
-
 Parser::Parser()
 {
 }
@@ -9,6 +7,10 @@ Parser::Parser()
 std::shared_ptr<SyntaxTree> Parser::analyze(Tables &tables, std::vector<std::string> &errors)
 {
     auto tree = std::make_shared<SyntaxTree>();
+
+    if (!errors.empty()) {
+        return tree;
+    }
 
     auto builder = Builder(tree, tables);
     auto tokens = TokenIterator(tables.tokens());
@@ -112,7 +114,7 @@ bool Parser::block(Builder builder, TokenIterator &tokens, std::vector<std::stri
 
 bool Parser::parametersList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    builder.node = builder.node->addChild(Labels::Tags::Block);
+    builder.node = builder.node->addChild(Labels::Tags::ParametersList);
 
     if (!leaf(builder, tokens, errors, static_cast<int>('('), static_cast<Tables::Range>(0), false)) {
         builder.node->addChild(Labels::Tags::Empty);
@@ -139,17 +141,15 @@ bool Parser::declarations(Builder builder, TokenIterator &tokens, std::vector<st
     return true;
 }
 
-bool Parser::declarationsList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
+bool Parser::declarationsList(Builder builder, TokenIterator &, std::vector<std::string> &)
 {
-    Q_UNUSED(tokens)
     builder.node = builder.node->addChild(Labels::Tags::DeclarationsList);
     builder.node->addChild(Labels::Tags::Empty);
     return true;
 }
 
-bool Parser::statementsList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
+bool Parser::statementsList(Builder builder, TokenIterator &, std::vector<std::string> &)
 {
-    Q_UNUSED(tokens)
     builder.node = builder.node->addChild(Labels::Tags::StatementsList);
     builder.node->addChild(Labels::Tags::Empty);
     return true;
@@ -225,7 +225,15 @@ bool Parser::leaf(Builder builder, TokenIterator &tokens, std::vector<std::strin
     }
 
     auto token = *tokens.token->get();
-    if (range != static_cast<Tables::Range>(0) && (builder.tables.getRange(token.code()) != range || token.code() != code)) {
+    Tables::Range tokenRange;
+
+    try {
+        tokenRange = builder.tables.getRange(token.code());
+    } catch (std::runtime_error) {
+        tokenRange = static_cast<Tables::Range>(0);
+    }
+
+    if (range != static_cast<Tables::Range>(0) && (tokenRange != range || token.code() != code)) {
         if (!required) {
             return false;
         }
@@ -241,10 +249,13 @@ bool Parser::leaf(Builder builder, TokenIterator &tokens, std::vector<std::strin
             buff = "Identifier";
             break;
         }
+        if (tokenRange != static_cast<Tables::Range>(0)) {
+            buff += " '" + builder.tables.name(code)  + "'";
+        }
+
         errors.push_back("\033[1;37mParser:\033[0m \033[1;31mError (line: " + std::to_string(token.y())
                           + ", column: " + std::to_string(token.x()) + "):\033[0m "
-                          + buff + " '" + builder.tables.name(code)
-                          + "' expected but '" + token.name() + "' found");
+                          + buff + " expected but '" + token.name() + "' found");
         return false;
     }
 

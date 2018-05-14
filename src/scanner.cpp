@@ -70,9 +70,9 @@ void Scanner::analyze(std::ifstream &stream, Tables &tables, std::vector<std::st
 
                 if (stream.eof()) {
                     suppressOutput = true;
-                    errors.push_back("Lexer: Error (line " + std::to_string(y1)
+                    errors.push_back("\033[1;37mLexer:\033[0m \033[1;31mError (line " + std::to_string(y1)
                                      + ", column " + std::to_string(x1)
-                                     + "): *) expected but end of file found");
+                                     + "):\033[0m '*)' expected but end of file found");
                     break;
                 }
 
@@ -89,9 +89,9 @@ void Scanner::analyze(std::ifstream &stream, Tables &tables, std::vector<std::st
                     }
                     if (stream.eof()) {
                         suppressOutput = true;
-                        errors.push_back("Lexer: Error (line " + std::to_string(y1)
+                        errors.push_back("\033[1;37mLexer:\033[0m \033[1;31mError (line " + std::to_string(y1)
                                          + ", column " + std::to_string(x1)
-                                         + "): *) expected but end of file found");
+                                         + "):\033[0m '*)' expected but end of file found");
                         break;
                     }
 
@@ -118,9 +118,9 @@ void Scanner::analyze(std::ifstream &stream, Tables &tables, std::vector<std::st
                 symbol.gets(stream);
             }
             suppressOutput = true;
-            errors.push_back("Lexer: Error (line " + std::to_string(y)
+            errors.push_back("\033[1;37mLexer:\033[0m \033[1;31mError (line " + std::to_string(y)
                              + ", column " + std::to_string(x)
-                             + "): invalid character");
+                             + "):\033[0m invalid character");
             break;
         }
         if (!suppressOutput) {

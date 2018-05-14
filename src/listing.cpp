@@ -2,7 +2,6 @@
 
 Listing::Listing()
 {
-
 }
 
 void Listing::printErrors(std::vector<std::string> errors, std::ostream &stream) const
@@ -46,4 +45,9 @@ void Listing::printSyntaxTree(std::shared_ptr<SyntaxTree> node,
     for (auto child: node->childrens()) {
         printSyntaxTree(child, tables, stream, level);
     }
+}
+
+void Listing::printCodeText(std::string text, std::ostream &stream) const
+{
+    stream << text;
 }

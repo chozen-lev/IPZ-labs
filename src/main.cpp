@@ -5,6 +5,7 @@
 #include "tables.h"
 #include "scanner.h"
 #include "parser.h"
+#include "codegen.h"
 #include "listing.h"
 
 #define VERSION "0.3.9"
@@ -66,13 +67,24 @@ int main(int argc, char* argv[])
 
     Scanner scanner;
     Parser parser;
+    CodeGen codegen;
     Listing listing;
 
     scanner.analyze(fileStream, tables, errorList);
     auto syntaxTree = parser.analyze(tables, errorList);
+    std::string codeText = codegen.generate(*syntaxTree, tables, errorList);
 
     listing.printErrors(errorList, std::cout);
 
+    if (vm.count("output")) {
+    #ifdef DEBUG
+        std::cout << std::endl;
+        listing.printCodeText(codeText, std::cout);
+    #endif
+        std::ofstream parserStream(vm["output"].as<std::string>().empty() ? path_file + "asm" : vm["output"].as<std::string>());
+        listing.printCodeText(codeText, parserStream);
+        parserStream.close();
+    }
     if (vm.count("lexer")) {
     #ifdef DEBUG
         std::cout << std::endl;

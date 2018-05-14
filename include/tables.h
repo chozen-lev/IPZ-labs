@@ -23,6 +23,17 @@ public:
         constantsBegin = 700
     };
 
+    struct TokenIterator {
+        explicit TokenIterator(std::vector<std::shared_ptr<Token>> &tokens)
+            : token(std::begin(tokens))
+            , end(std::end(tokens))
+        {
+        }
+
+        std::vector<std::shared_ptr<Token>>::iterator token;
+        std::vector<std::shared_ptr<Token>>::const_iterator end;
+    };
+
 public:
     Tables();
     int search(Range rangeBegin, std::string name);

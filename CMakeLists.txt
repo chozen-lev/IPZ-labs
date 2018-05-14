@@ -6,15 +6,15 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Generating all warnings and errors
-if ( CMAKE_COMPILER_IS_GNUCC )
+if (CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -pedantic-errors")
 endif()
-if ( MSVC )
+if(MSVC)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
 endif()
 
 # Print debug info in console
-if ( CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     add_definitions("-DDEBUG")
 endif()
 
@@ -26,6 +26,7 @@ include_directories(${Boost_INCLUDE_DIR})
 include_directories(include)
 file(GLOB SOURCES "src/scanner.cpp"
                 , "src/parser.cpp"
+                , "src/codegen.cpp"
                 , "src/tables.cpp"
                 , "src/listing.cpp"
                 , "src/syntaxtree.cpp"

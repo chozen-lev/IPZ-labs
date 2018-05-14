@@ -22,16 +22,6 @@ class Parser
         std::shared_ptr<SyntaxTree> node;
         Tables tables;
     };
-    struct TokenIterator {
-        explicit TokenIterator(std::vector<std::shared_ptr<Token>> &tokens)
-            : token(std::begin(tokens))
-            , end(std::end(tokens))
-        {
-        }
-
-        std::vector<std::shared_ptr<Token>>::iterator token;
-        std::vector<std::shared_ptr<Token>>::const_iterator end;
-    };
 
 public:
     Parser();
@@ -39,6 +29,8 @@ public:
     std::shared_ptr<SyntaxTree> analyze(Tables &tables, std::vector<std::string> &errors);
 
 private:
+    using TokenIterator = Tables::TokenIterator;
+
     bool signalProgram(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
     bool program(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);
     bool procedureIdentifier(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors);

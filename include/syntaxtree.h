@@ -19,6 +19,7 @@ public:
     std::shared_ptr<SyntaxTree> &addChild(Labels::Tags label);
 
     std::vector<std::shared_ptr<SyntaxTree>> &childrens();
+    SyntaxTree& at(int index);
     Labels::Tags label() const;
     int code() const;
 
