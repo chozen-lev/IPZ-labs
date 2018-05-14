@@ -6,9 +6,14 @@ CodeGen::CodeGen()
 
 std::string CodeGen::generate(SyntaxTree root, Tables tables, Errors &errors)
 {
-    m_identifierList.clear();
+    if (!errors.empty()) {
+        return "";
+    }
 
-    return signalProgram(root, tables, errors) + "\n";
+    m_identifierList.clear();
+    std::string codeText = signalProgram(root, tables, errors) + "\n";
+
+    return errors.empty() ? codeText : "";
 }
 
 std::string CodeGen::signalProgram(SyntaxTree node, Tables tables, Errors &errors)
@@ -22,20 +27,19 @@ std::string CodeGen::program(SyntaxTree node, Tables tables, Errors &errors)
     int typeCode = node.at(0).code();
 
     std::string identifierText = procedureIdentifier(node.at(1), tables, errors);
-    std::string blockText = block(node.at(4), tables, errors);
 
     if (typeCode == PROGRAM_CODE) {
         programText += identifierText + " segment\n";
-        programText += blockText + "\n";
+        programText += block(node.at(3), tables, errors) + "\n";
         programText += identifierText + " ends\n";
-        programText += "end\n";
+        programText += "end";
     } else if (typeCode == PROCEDURE_CODE) {
         std::string parametersListText = parametersList(node.at(2), tables, errors);
 
         programText += "public " + identifierText + "\n";
         programText += "Code segment\n";
         programText += identifierText + " proc " + parametersListText + "\n";
-        programText += blockText + "\n";
+        programText += block(node.at(4), tables, errors) + "\n";
         programText += identifierText + " endp\n";
         programText += "Code ends\n";
         programText += "end";

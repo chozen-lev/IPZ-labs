@@ -51,6 +51,10 @@ std::map<std::string, int> &Tables::table(int code)
 
 std::string Tables::name(int code)
 {
+    if (code > 0 && code < static_cast<int>(Range::keywordsBegin)) {
+        return std::string(1, static_cast<char>(code));
+    }
+
     std::map<std::string, int> table = this->table(getRange(code));
 
     auto it = std::find_if(std::begin(table), std::end(table),

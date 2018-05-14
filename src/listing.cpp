@@ -2,7 +2,6 @@
 
 Listing::Listing()
 {
-
 }
 
 void Listing::printErrors(std::vector<std::string> errors, std::ostream &stream) const
