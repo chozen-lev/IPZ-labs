@@ -41,6 +41,11 @@ std::vector<std::shared_ptr<SyntaxTree>> &SyntaxTree::childrens()
     return m_childrens;
 }
 
+SyntaxTree &SyntaxTree::at(int index)
+{
+    return *m_childrens.at(index).get();
+}
+
 Labels::Tags SyntaxTree::label() const
 {
     return m_label;

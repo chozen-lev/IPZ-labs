@@ -19,4 +19,5 @@ public:
                          Tables tables,
                          std::ostream &stream = std::cout,
                          int level = 0) const;
+    void printCodeText(std::string text, std::ostream &stream = std::cout) const;
 };

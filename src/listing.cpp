@@ -47,3 +47,8 @@ void Listing::printSyntaxTree(std::shared_ptr<SyntaxTree> node,
         printSyntaxTree(child, tables, stream, level);
     }
 }
+
+void Listing::printCodeText(std::string text, std::ostream &stream) const
+{
+    stream << text;
+}

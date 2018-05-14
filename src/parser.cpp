@@ -112,7 +112,7 @@ bool Parser::block(Builder builder, TokenIterator &tokens, std::vector<std::stri
 
 bool Parser::parametersList(Builder builder, TokenIterator &tokens, std::vector<std::string> &errors)
 {
-    builder.node = builder.node->addChild(Labels::Tags::Block);
+    builder.node = builder.node->addChild(Labels::Tags::ParametersList);
 
     if (!leaf(builder, tokens, errors, static_cast<int>('('), static_cast<Tables::Range>(0), false)) {
         builder.node->addChild(Labels::Tags::Empty);
